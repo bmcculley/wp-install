@@ -18,7 +18,9 @@ improvement? Jump right in; pull requests are welcome.
 List
 ----
 
- - Actually use a configuration file.
+ - ~~Actually use a configuration file.~~
  - Interface with another server 
  - Finish implementing the file settings bit
+ - Finish adding command line arguments
+ - Add help text and documentation
  - There's most likely more...

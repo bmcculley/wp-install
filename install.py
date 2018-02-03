@@ -1,34 +1,62 @@
+import sys
 from random import choice
 from string import ascii_lowercase, ascii_uppercase, digits
 import pymysql.cursors
 import requests
 import zipfile
-import StringIO
 
-# need to load settings from a config file
-site_url = "http://wp.dev"
-path_to_install = "/var/www/html"
-wpdl = "https://wordpress.org/latest.zip"
+try:
+    import ConfigParser as configparser
+except ImportError:
+    import configparser
 
-# set the site details
-site_name = "WPDev"
-site_user = "username"
-site_pass = "password"
-confirm_pass = "" #checkbox value
-site_email = "admin@example.com"
-se_vis = "" #checkbox value
-site_lang = "en_US"
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 
-# database settings
-db_host = "localhost" 
-db_admin = "root"
-dba_pass = "password"
+def logo():
+    print("""
+                    __      _____ ___         _        _ _ 
+Author:  bmcculley  \ \    / / _ \_ _|_ _  __| |_ __ _| | |
+Version: 0.1         \ \/\/ /|  _/| || ' \(_-<  _/ _` | | |
+License: BSD 3        \_/\_/ |_| |___|_||_/__/\__\__,_|_|_|
+""")
 
-# give option to pull database name and user name
-db_name = "wpdev"
-db_user = "wp_user"
-db_pass = "password"
-db_prefix = "wp_"
+def complete():
+    print("""
+                             
+                     `......`                     
+               `://///:----::////:`               
+            ./+/. `-:/+oooo+/:-` ./++.            
+          :o:``:oyhhhhhhhhhhhhhhyo:``:o:          
+        :o- -ohhhhhhhhhhhhhhhhhhhhhh/` -o:        
+      `o/ .shhhhhhhhhhhhhhhhhhhhhh+`     /o`      
+     `s- `///:::shh/:://///:::yhhh.       .s`     
+    `s. `    `syhhhhyo     .yyhhhhs`     : .s`    
+    +/ :s     :hhhhhhh+     +hhhhhhs`    s/ :o    
+   `y` yh/     ohhhhhhh-    `yhhhhhhy`  `yh` y`   
+   :o -hhh.    `hhhhhhhh`    .hhhhhhh:  /hh: +:   
+   /+ :hhhy`    :hhhhhhh-     +hhhhhh: .hhh/ //   
+   :o -hhhho     ohhhhh+ -     yhhhhy``yhhh: +:   
+   `y `yhhhh:    `hhhhy`/h.    .hhhh: +hhhh` y`   
+    +/ :hhhhh.    :hhh-.hhy`    +hhs -hhhh/ :o    
+    `s. +hhhhy     oh+ shhho     sh.`yhhho .s`    
+     `s. /hhhh+    `s`+hhhhh:    .+ ohhh/ .s.     
+      `o/ .shhh-     .hhhhhhh.     :hhs. :o`      
+        :o- -ohh`   `yhhhhhhhy    `yo- -o:        
+          :o:``:/   +hhhhhhhhh+   .``:o/          
+            .++:.   /+oossoo+/-  .:++-            
+               `:////:------:////:.               
+                     `..--..`           
+""")
+
+def show_help():
+    print("""
++-----------------------------------------------------------------------+
+|             WPInstall General Usage and Information                   |
++-----------------------------------------------------------------------+
+""")
 
 def generate_random_username(length=8, chars=ascii_lowercase+digits):
     """ This function generates a random username.
@@ -113,13 +141,51 @@ def install_wp(site_url, site_name, site_user, site_pass, site_email):
                 return "WordPress successfully installed."
     return "oh snap, something went wrong."
 
-
 if __name__ == '__main__':
-    print("creating the database")
-    #create_database(db_host, db_admin, dba_pass, db_name, db_user, db_pass)
-    print("done")
-    print("downloading wordpress to the install directory")
-    #download_unzip_wp(path_to_install)
-    print("all set")
-    print("let's install WordPress")
-    print(install_wp(site_url, site_name, site_user, site_pass, site_email))
+    logo()
+
+    if len(sys.argv) > 1:
+        print("setting configuration options")
+        
+        config = configparser.ConfigParser()
+        config.read('config.ini')
+
+        if 'site_settings' not in config or \
+            'site_details' not in config or \
+            'database_settings' not in config:
+            print("Does the config file exist and have all the correct sections?")
+            sys.exit()
+
+        # site_settings
+        site_url = config['site_settings']['site_url']
+        path_to_install = config['site_settings']['path_to_install']
+        wpdl = config['site_settings']['wpdl']
+
+        # site_details
+        site_name = config['site_details']['site_name']
+        site_user = config['site_details']['site_user']
+        site_pass = config['site_details']['site_pass']
+        confirm_pass = config['site_details']['confirm_pass']
+        site_email = config['site_details']['site_email']
+        se_vis = config['site_details']['se_vis']
+        site_lang = config['site_details']['site_lang']
+
+        # database_settings
+        db_host = config['database_settings']['db_host'] 
+        db_admin = config['database_settings']['db_admin']
+        dba_pass = config['database_settings']['dba_pass']
+        db_name = config['database_settings']['db_name']
+        db_user = config['database_settings']['db_user']
+        db_pass = config['database_settings']['db_pass']
+        db_prefix = config['database_settings']['db_prefix']
+
+        print("creating the database")
+        create_database(db_host, db_admin, dba_pass, db_name, db_user, db_pass)
+        print("done")
+        print("downloading wordpress to the install directory")
+        download_unzip_wp(path_to_install)
+        print("all set")
+        print("let's install WordPress")
+        print(install_wp(site_url, site_name, site_user, site_pass, site_email))
+    else:
+        show_help()
